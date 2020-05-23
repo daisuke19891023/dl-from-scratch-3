@@ -1,9 +1,10 @@
 import numpy as np
-from typing import List, Tuple, Dict, Union
+from typing import List, Tuple, Dict, Union, Optional
+from nptyping import Array
 
 
 class Variable:
-    def __init__(self, data):
+    def __init__(self, data: Union[float, Array[float, ..., ...]]) -> None:
         if data is not None:
             if not isinstance(data, np.ndarray):
                 raise TypeError('{} is not supported'.format(type(data)))
@@ -12,11 +13,11 @@ class Variable:
         self.creator = None
         self.generation = 0
 
-    def set_creator(self, func):
+    def set_creator(self, func) -> None:
         self.creator = func
         self.generation = func.generation + 1
 
-    def backward(self):
+    def backward(self) -> None:
 
         if self.grad is None:
             self.grad = np.ones_like(self.data)
@@ -48,7 +49,7 @@ class Variable:
                 if x.creator is not None:
                     add_func(x.creator)
 
-    def cleargrad(self):
+    def cleargrad(self) -> None:
         self.grad = None
 
 
@@ -75,7 +76,7 @@ class Function:
 
 
 class Square(Function):
-    def forward(self, x):
+    def forward(self, x: Union[float, Array[float, ..., ...]]) -> float:
         y = x ** 2
         return y
 
@@ -98,29 +99,33 @@ def add(x0, x1):
     return Add()(x0, x1)
 
 
-def square(x):
+def square(x: Variable) -> Union[List[Variable], Variable]:
     return Square()(x)
 
 
-def as_array(x):
+def as_array(x: Union[float, Array[float, ..., ...]]) -> Array[float, ..., ...]:
     if np.isscalar(x):
         return np.array(x)
     return x
 
 
-def numerical_diff(f, x, eps=1e-4):
+def numerical_diff(f: Function, x: Variable, eps=1e-4) -> Optional[float]:
     x0 = Variable(x.data - eps)
     x1 = Variable(x.data + eps)
     y0 = f(x0)
     y1 = f(x1)
-    return (y1.data - y0.data) / (2 * eps)
+    if isinstance(y0, Variable) and isinstance(y1, Variable):
+        return (y1.data - y0.data) / (2 * eps)
+    else:
+        return None
 
 
 if __name__ == '__main__':
     x = Variable(np.array(2.0))
     a = square(x)
-    y = add(square(a), square(a))
-    y.backward()
+    if isinstance(a, Variable):
+        y = add(square(a), square(a))
+        y.backward()
 
-    print(y.data)
-    print(x.grad)
+        print(y.data)
+        print(x.grad)
