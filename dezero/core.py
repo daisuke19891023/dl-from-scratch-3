@@ -19,7 +19,7 @@ class Variable:
                 raise TypeError('{} is not supported'.format(type(data)))
         self.data = data
         self.name = name
-        self.grad = Variable(np.ones_like(self.data))
+        self.grad = None
         self.creator = None
         self.generation = 0
 
@@ -30,7 +30,8 @@ class Variable:
     def backward(self, retain_grad=False, create_graph=False) -> None:
 
         if self.grad is None:
-            self.grad = np.ones_like(self.data)
+            # self.grad = np.ones_like(self.data)
+            self.grad = Variable(np.ones_like(self.data))
 
         funcs = []
         seen_set = set()

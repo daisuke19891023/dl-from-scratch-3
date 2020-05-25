@@ -3,17 +3,14 @@ if '__file__' in globals():
     import os
     import sys
     sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-    is_simple_core = True
-    if is_simple_core:
-
-        from dezero.core_simple import Variable
-        from dezero.core_simple import Function
-        from dezero.core_simple import using_config
-        from dezero.core_simple import no_grad
-        from dezero.core_simple import as_array
-        from dezero.core_simple import as_variable
-        from dezero.core_simple import setup_variable
-        from dezero.core_simple import Config, add, mul, neg, sub, rsub, div, rdiv, pow
+    from dezero import Variable
+    from dezero import Function
+    from dezero import using_config
+    from dezero import no_grad
+    from dezero import as_array
+    from dezero import as_variable
+    from dezero import setup_variable
+    from dezero.core import Config, add, mul, neg, sub, rsub, div, rdiv, pow
     import numpy as np
     import pytest
 
@@ -70,7 +67,7 @@ class TestNeg:
         x = Variable(np.array(2.0))
         y = -x
         y.backward()
-        assert x.grad == -1
+        assert x.grad.data == -1
 
     def test_neg_overload(self):
         x = Variable(np.array(2.0))
@@ -86,7 +83,7 @@ class TestAdd:
         x1 = culc_object[1]
         y = add(x0, x1)
         y.backward()
-        assert x0.grad == 1 and x1.grad == 1
+        assert x0.grad.data == 1 and x1.grad.data == 1
 
     def test_add_overload(self, culc_object):
         x0 = culc_object[0]
@@ -98,7 +95,7 @@ class TestAdd:
         x1 = culc_object[1]
         y = x0 + x1
         y.backward()
-        assert x0.grad == 1 and x1.grad == 1
+        assert x0.grad.data == 1 and x1.grad.data == 1
 
     def test_calc_multi_type(self):
         x = Variable(np.array(2.0))
@@ -130,7 +127,7 @@ class TestSub:
         x1 = culc_object[1]
         y = sub(x0, x1)
         y.backward()
-        assert x0.grad == 1 and x1.grad == -1
+        assert x0.grad.data == 1 and x1.grad.data == -1
 
     def test_sub_overload(self, culc_object):
         x0 = culc_object[0]
@@ -142,7 +139,7 @@ class TestSub:
         x1 = culc_object[1]
         y = x0 - x1
         y.backward()
-        assert x0.grad == 1 and x1.grad == -1
+        assert x0.grad.data == 1 and x1.grad.data == -1
 
 
 class TestMul:
@@ -156,7 +153,7 @@ class TestMul:
         x1 = culc_object[1]
         y = mul(x0, x1)
         y.backward()
-        assert x0.grad == 3 and x1.grad == 2
+        assert x0.grad.data == 3 and x1.grad.data == 2
 
     def test_mul_overload(self, culc_object):
         x0 = culc_object[0]
@@ -168,7 +165,7 @@ class TestMul:
         x1 = culc_object[1]
         y = mul(x0, x1)
         y.backward()
-        assert x0.grad == 3 and x1.grad == 2
+        assert x0.grad.data == 3 and x1.grad.data == 2
 
 
 class TestDiv:
@@ -180,7 +177,7 @@ class TestDiv:
         x1 = culc_object[1]
         y = div(x0, x1)
         y.backward()
-        assert x0.grad == 1 / 3 and x1.grad == -2 / 9
+        assert x0.grad.data == 1 / 3 and x1.grad.data == -2 / 9
 
     def test_div_overload(self, culc_object):
         x0 = culc_object[0]
@@ -192,7 +189,7 @@ class TestDiv:
         x1 = culc_object[1]
         y = x0 / x1
         y.backward()
-        assert x0.grad == 1 / 3 and x1.grad == -2 / 9
+        assert x0.grad.data == 1 / 3 and x1.grad.data == -2 / 9
 
 
 class TestPow:
@@ -204,7 +201,7 @@ class TestPow:
         x = Variable(np.array(2.0))
         y = pow(x, 3)
         y.backward()
-        assert x.grad == 12
+        assert x.grad.data == 12
 
     def test_pow_overload(self):
         x = Variable(np.array(2.0))
@@ -214,7 +211,7 @@ class TestPow:
         x = Variable(np.array(2.0))
         y = x ** 3
         y.backward()
-        assert x.grad == 12
+        assert x.grad.data == 12
 
 
 class TestUtils:
