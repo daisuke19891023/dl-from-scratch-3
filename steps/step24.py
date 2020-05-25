@@ -3,8 +3,8 @@ if '__file__' in globals():
     import sys
     sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
     import numpy as np
-    from dezero import Variable
-    from dezero import setup_variable
+    from dezero.core_simple import Variable
+    from dezero.core_simple import setup_variable
 setup_variable()
 
 
