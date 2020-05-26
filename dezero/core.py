@@ -135,6 +135,10 @@ class Function:
         raise NotImplementedError()
 
 
+class Parameter(Variable):
+    pass
+
+
 class Neg(Function):
     def forward(self, x):
         return -x
