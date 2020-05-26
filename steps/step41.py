@@ -10,6 +10,9 @@ if '__file__' in globals():
     import dezero.functions as F
 setup_variable()
 
-x = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-y = F.sum_to(x, (1, 1))
-print(y)
+x = Variable(np.random.randn(2, 3))
+W = Variable(np.random.randn(3, 4))
+y = F.matmul(x, W)
+y.backward()
+print(x.grad.shape)
+print(W.grad.shape)
