@@ -1,5 +1,8 @@
 import os
 import subprocess
+import numpy as np
+from dezero import as_variable
+from dezero import Variable
 
 
 def _dot_var(v, verbose=False):
@@ -65,3 +68,44 @@ def plot_dot_graph(output, verbose=True, to_file='graph.png'):
     extension = os.path.splitext(to_file)[1][1:]
     cmd = 'dot {} -T {} -o {}'.format(graph_path, extension, to_file)
     subprocess.run(cmd, shell=True)
+
+
+def sum_to(x, shape):
+    """Sum elements along axes to output an array of a goven shape.
+
+    :param ndarray x: Input array
+    :param shape:shapes
+    :return:  Output array of the shape
+    :rtype: ndarray
+    """
+    ndim = len(shape)
+    lead = x.ndim - ndim
+    lead_axis = tuple(range(lead))
+
+    axis = tuple([i + lead for i, sx in enumerate(shape) if sx == 1])
+    y = x.sum(lead_axis + axis, keepdims=True)
+    print("ndim:{}, lead:{}, lead_axis:{}, axis:{}, y:{}".format(
+        ndim, lead, lead_axis, axis, y))
+    if lead > 0:
+        y = y.squeeze(lead_axis)
+    return y
+
+
+def reshape_sum_backward(gy, x_shape, axis, keepdims):
+    ndim = len(x_shape)
+    tupled_axis = axis
+    if axis is None:
+        tupled_axis = None
+    elif not hasattr(axis, 'len'):
+        tupled_axis = (axis,)
+
+    if not (ndim == 0 or tupled_axis is None or keepdims):
+        actual_axis = [a if a >= 0 else a + ndim for a in tupled_axis]
+        shape = list(gy.shape)
+        for a in sorted(actual_axis):
+            shape.insert(a, 1)
+    else:
+        shape = gy.shape
+
+    gy = gy.reshape(shape)
+    return gy

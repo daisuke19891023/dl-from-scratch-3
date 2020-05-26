@@ -126,3 +126,28 @@ class TestTranspose:
         y = F.transpose(x)
         y.backward(create_graph=True)
         assert x.grad.shape == (2, 3)
+
+    def test_transpose_var_method(self):
+        x = Variable(np.array([[1, 2, 3], [4, 5, 6]]))
+        y = x.transpose()
+        assert y.shape == (3, 2)
+
+    def test_transpose_property(self):
+        x = Variable(np.array([[1, 2, 3], [4, 5, 6]]))
+        y = x.T
+        assert y.shape == (3, 2)
+
+
+class TestSumTo:
+    def test_sum_to_forward(self):
+        x0 = Variable(np.array([1, 2, 3]))
+        x1 = Variable(np.array([10]))
+        y = x0 + x1
+        assert y.data[0] == 11 and y.data[1] == 12 and y.data[2] == 13
+
+    def test_sum_to_backward(self):
+        x0 = Variable(np.array([1, 2, 3]))
+        x1 = Variable(np.array([10]))
+        y = x0 + x1
+        y.backward()
+        assert x1.grad.data == [3]
