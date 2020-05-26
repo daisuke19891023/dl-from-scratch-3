@@ -10,6 +10,7 @@ if '__file__' in globals():
     import dezero.functions as F
 setup_variable()
 
-x = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-y = F.sum_to(x, (1, 1))
-print(y)
+if __name__ == '__main__':
+    x = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    y = F.sum_to(x, (1, 1))
+    print(y)

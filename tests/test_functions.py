@@ -16,6 +16,7 @@ if '__file__' in globals():
     import pytest
 
 setup_variable()
+np.random.seed(0)
 
 
 class TestSin:
@@ -151,3 +152,11 @@ class TestSumTo:
         y = x0 + x1
         y.backward()
         assert x1.grad.data == [3]
+
+
+class TestMeanSquaredError:
+    def test_mean_squared_error_forward(self):
+        x0 = Variable(np.array([2, 1]))
+        x1 = Variable(np.array([1, 2]))
+        y = F.mean_squared_error(x0, x1)
+        assert y.data == 1
