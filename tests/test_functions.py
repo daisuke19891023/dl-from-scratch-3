@@ -64,3 +64,27 @@ class TestCos:
         gx.backward(create_graph=False)
         result = x.grad.data
         assert np.allclose(result, -0.54030231)
+
+
+class TestTanh:
+    def test_tanh_forward(self):
+        x = Variable(np.array(np.pi / 4))
+        y = F.tanh(x)
+        assert np.allclose(y.data, 0.6557942)
+
+    def test_tanh_backward_once(self):
+        x = Variable(np.array(np.pi / 4))
+        y = F.tanh(x)
+        y.backward()
+        result = x.grad.data
+        assert np.allclose(result, 0.56993396)
+
+    def test_tanh_backward_twice(self):
+        x = Variable(np.array(1.0))
+        y = F.tanh(x)
+        y.backward(create_graph=True)
+        gx = x.grad
+        x.cleargrad()
+        gx.backward(create_graph=False)
+        result = x.grad.data
+        assert np.allclose(result, -0.63970001)
