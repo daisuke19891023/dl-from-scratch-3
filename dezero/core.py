@@ -4,6 +4,7 @@ import numpy as np
 from typing import List, Tuple, Dict, Union, Optional
 from nptyping import Array
 from memory_profiler import profile
+import dezero
 
 
 class Config:
@@ -66,6 +67,14 @@ class Variable:
     def cleargrad(self) -> None:
         self.grad = None
 
+    def reshape(self, *shape):
+        if len(shape) == 1 and isinstance(shape[0], (tuple, list)):
+            shape = shape[0]
+        return dezero.functions.reshape(self, shape)
+
+    def transpose(self):
+        return dezero.functions.transpose(self)
+
     @property
     def shape(self) -> Tuple[int, ...]:
         return self.data.shape
@@ -81,6 +90,10 @@ class Variable:
     @property
     def dtype(self):
         return self.data.dtype
+
+    @property
+    def T(self):
+        return dezero.functions.transpose(self)
 
     def __len__(self):
         # np.arrayは次元が1の場合lenを使うとエラーになる

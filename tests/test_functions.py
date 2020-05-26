@@ -88,3 +88,41 @@ class TestTanh:
         gx.backward(create_graph=False)
         result = x.grad.data
         assert np.allclose(result, -0.63970001)
+
+
+class TestReshape:
+    def test_reshape_forward(self):
+        x = Variable(np.array([[1, 2, 3], [4, 5, 6]]))
+        y = F.reshape(x, (6,))
+        assert y.shape == (6,)
+
+    def test_reshape_backward(self):
+        x = Variable(np.array([[1, 2, 3], [4, 5, 6]]))
+        y = F.reshape(x, (6,))
+        y.backward(create_graph=False)
+
+        assert x.grad.shape == (2, 3)
+
+    @pytest.mark.parametrize("input, expected", ([([2, 3], (2, 3)), ((2, 3), (2, 3))]))
+    def test_reshape_var_method(self, input, expected):
+        x = Variable(np.array([1, 2, 3, 4, 5, 6]))
+        y = x.reshape(input)
+        assert y.shape == expected
+
+    def test_reshape_var_method_tuple(self):
+        x = Variable(np.array([1, 2, 3, 4, 5, 6]))
+        y = x.reshape(2, 3)
+        assert y.shape == (2, 3)
+
+
+class TestTranspose:
+    def test_transpose_forward(self):
+        x = Variable(np.array([[1, 2, 3], [4, 5, 6]]))
+        y = F.transpose(x)
+        assert y.shape == (3, 2)
+
+    def test_transpose_backward(self):
+        x = Variable(np.array([[1, 2, 3], [4, 5, 6]]))
+        y = F.transpose(x)
+        y.backward(create_graph=True)
+        assert x.grad.shape == (2, 3)
