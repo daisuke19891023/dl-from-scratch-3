@@ -143,6 +143,17 @@ class Exp(Function):
         return gx
 
 
+class Log(Function):
+    def forward(self, x):
+        y = np.log(x)
+        return y
+
+    def backward(self, gy):
+        x, = self.inputs
+        gx = gy / x
+        return gx
+
+
 class Linear(Function):
     def forward(self, x, W, b):
         y = x.dot(W)
@@ -167,6 +178,54 @@ class Sigmoid(Function):
         y = self.outputs[0]()
         gx = gy * y * (1 - y)
         return gx
+
+
+class GetItem(Function):
+    def __init__(self, slices):
+        self.slices = slices
+
+    def forward(self, x):
+        y = x[self.slices]
+        return y
+
+    def backward(self, gy):
+        x, = self.inputs
+        f = GetItemGrad(self.slices, x.shape)
+        return f(gy)
+
+
+class GetItemGrad(Function):
+    def __init__(self, slices, in_shape):
+        self.slices = slices
+        self.in_shape = in_shape
+
+    def forward(self, gy):
+        gx = np.zeros(self.in_shape)
+        np.add.at(gx, self.slices, gy)
+        return gx
+
+    def backward(self, ggx):
+        return get_item(ggx, self.slices)
+
+
+class Clip(Function):
+    def __init__(self, x_min, x_max):
+        self.x_min = x_min
+        self.x_max = x_max
+
+    def forward(self, x):
+        y = np.clip(x, self.x_min, self.x_max)
+        return y
+
+    def backward(self, gy):
+        x = self.inputs
+        mask = (x.data >= self.x_min) * (x.data <= self.x_max)
+        gx = gy * mask
+        return gx
+
+
+def clip(x, x_min, x_max):
+    return Clip(x_min, x_max)(x)
 
 
 def sin(x):
@@ -211,6 +270,25 @@ def linear_simple(x, W, b=None):
     return y
 
 
+def softmax_simple(x, axis=1):
+    x = as_variable(x)
+    y = exp(x)
+    sum_y = sum(y, axis=axis, keepdims=True)
+    return y / sum_y
+
+
+def softmax_cross_entropy_simple(x, t):
+    x, t = as_variable(x), as_variable(t)
+    N = x.shape[0]
+    p = softmax_simple(x)
+    p = clip(p, 1e-15, 1.0)
+    log_p = log(p)
+    tlog_p = log_p[np.arange(N), t.data]
+    print("p:{}\nlog_p:{}\ntlog_p:{}".format(p, log_p, tlog_p))
+    y = 1 - sum(tlog_p) / N
+    return y
+
+
 def sigmoid_simple(x):
     x = as_variable(x)
     y = 1 / (1 + exp(-x))
@@ -235,9 +313,17 @@ def exp(x):
     return Exp()(x)
 
 
+def log(x):
+    return Log()(x)
+
+
 def sigmoid(x):
     return Sigmoid()(x)
 
 
 def linear(x, W, b=None):
     return Linear()(x, W, b)
+
+
+def get_item(x, slices):
+    return GetItem(slices)(x)

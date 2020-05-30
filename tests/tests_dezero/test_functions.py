@@ -160,3 +160,19 @@ class TestMeanSquaredError:
         x1 = Variable(np.array([1, 2]))
         y = F.mean_squared_error(x0, x1)
         assert y.data == 1
+
+
+class TestGetItem:
+    def test_get_item_forward(self):
+        x = Variable(np.array([[1, 2, 3], [4, 5, 6]]))
+        y = F.get_item(x, 1)
+        excepted = Variable(np.array([4, 5, 6]))
+        assert all(y.data == excepted.data)
+
+    def test_get_item_backward(self):
+        x = Variable(np.array([[1, 2, 3], [4, 5, 6]]))
+        y = F.get_item(x, 1)
+        y.backward()
+        expecteds = Variable(np.array([[0, 0, 0], [1, 1, 1]]))
+        for result, expected in zip(x.grad.data, expecteds.data):
+            assert all(result == expected)
