@@ -2,6 +2,8 @@
 
 `pytest tests -v --cov=. --capture=sys`
 
+`pytest tests/dezero -v --cov=. --capture=sys`
+
 ` python -m memory_profiler {}.py}`
 
 `D:/Develop/Anaconda/Scripts/activate`
