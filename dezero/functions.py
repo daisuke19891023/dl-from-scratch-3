@@ -1,6 +1,6 @@
 import numpy as np
 from dezero.core import Function
-from dezero.core import as_variable
+from dezero.core import as_variable, as_array
 from dezero import utils
 
 
@@ -396,6 +396,14 @@ def max(x, axis=None, keepdims=False):
 
 def min(x, axis=None, keepdims=False):
     return Min(axis, keepdims)(x)
+
+
+def accuracy(y, t):
+    y, t = as_variable(y), as_variable(t)
+    pred = y.data.argmax(axis=1).reshape(t.shape)
+    result = (pred == t.data)
+    acc = result.mean()
+    return as_variable(as_array(acc))
 
 
 class Clip(Function):
