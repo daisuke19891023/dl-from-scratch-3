@@ -1,9 +1,8 @@
 import numpy as np
-from dezero.core import Function
-from dezero.core import as_variable, as_array
-from dezero import utils
-from dezero import cuda
 import dezero
+from dezero import cuda, utils
+from dezero.core import Function, Variable, as_variable, as_array
+
 # =============================================================================
 # Basic functions: sin / cos / tanh / exp / log
 # =============================================================================
@@ -129,8 +128,8 @@ class Transpose(Function):
         return transpose(gy, inv_axes)
 
 
-def transpose(x):
-    return Transpose()(x)
+def transpose(x, axes=None):
+    return Transpose(axes)(x)
 
 
 class GetItem(Function):
@@ -498,3 +497,25 @@ class Clip(Function):
 
 def clip(x, x_min, x_max):
     return Clip(x_min, x_max)(x)
+
+
+# =============================================================================
+# conv2d / col2im / im2col / basic_math
+# =============================================================================
+conv_import = True
+if conv_import:
+    from dezero.functions_conv import conv2d
+    from dezero.functions_conv import deconv2d
+    from dezero.functions_conv import conv2d_simple
+    from dezero.functions_conv import im2col
+    from dezero.functions_conv import col2im
+    from dezero.functions_conv import pooling_simple
+    # from dezero.functions_conv import pooling
+    # from dezero.functions_conv import average_pooling
+    # from dezero.core import add
+    # from dezero.core import sub
+    # from dezero.core import rsub
+    # from dezero.core import mul
+    # from dezero.core import div
+    # from dezero.core import neg
+    # from dezero.core import pow
