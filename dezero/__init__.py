@@ -20,7 +20,7 @@ else:
     from dezero.core import test_mode
     from dezero.core import Parameter
     from dezero.models import Model
-    from dezero.dataloaders import DataLoader
+    from dezero.dataloaders import DataLoader, SeqDataLoader
 
     import dezero.datasets
     import dezero.dataloaders
