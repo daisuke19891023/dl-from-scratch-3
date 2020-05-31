@@ -136,10 +136,10 @@ class Conv2d(Layer):
         KH, KW = pair(self.kernel_size)
         scale = np.sqrt(1/(C*KH*KW))
         W_data = xp.random.randn(OC, C, KH, KW).astype(self.dtype) * scale
-        self.W_data = W_data
+        self.W.data = W_data
 
     def forward(self, x):
-        if self.W_data is None:
+        if self.W.data is None:
             self.in_channels = x.shape[1]
             xp = cuda.get_array_module(x)
             self._init_W(xp)
@@ -147,3 +147,22 @@ class Conv2d(Layer):
         y = F.conv2d(x, self.W, self.b, self.stride, self.pad)
 
         return y
+
+
+class RNN(Layer):
+    def __init__(self, hidden_size, in_size=None):
+        super().__init__()
+        self.x2h = Linear(hidden_size, in_size=in_size)
+        self.h2h = Linear(hidden_size, in_size=in_size, nobias=True)
+        self.h = None
+
+    def reset_state(self):
+        self.h = None
+
+    def forward(self, x):
+        if self.h is None:
+            h_new = F.tanh(self.x2h(x))
+        else:
+            h_new = F.tanh(self.x2h(x) + self.h2h(self.h))
+        self.h = h_new
+        return h_new

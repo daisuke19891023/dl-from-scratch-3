@@ -56,7 +56,7 @@ class VGG16(Model):
             weights_path = utils.get_file(VGG16.WEIGHTS_PATH)
             self.load_weights(weights_path)
 
-    def forward(self, ):
+    def forward(self, x):
         x = F.relu(self.conv1_1(x))
         x = F.relu(self.conv1_2(x))
         x = F.pooling_simple(x, 2, 2)
