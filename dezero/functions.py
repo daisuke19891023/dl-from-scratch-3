@@ -3,7 +3,7 @@ from dezero.core import Function
 from dezero.core import as_variable, as_array
 from dezero import utils
 from dezero import cuda
-
+import dezero
 # =============================================================================
 # Basic functions: sin / cos / tanh / exp / log
 # =============================================================================
@@ -414,7 +414,30 @@ def softmax_cross_entropy_simple(x, t):
     print("p:{}\nlog_p:{}\ntlog_p:{}".format(p, log_p, tlog_p))
     y = 1 - sum(tlog_p) / N
     return y
+# =============================================================================
+# accuracy / dropout / batch_norm / embed_id
+# =============================================================================
 
+
+def accuracy(y, t):
+    y, t = as_variable(y), as_variable(t)
+    pred = y.data.argmax(axis=1).reshape(t.shape)
+    result = (pred == t.data)
+    acc = result.mean()
+    return as_variable(as_array(acc))
+
+
+def dropout(x, dropout_ratio=0.5):
+    x = as_variable(x)
+
+    if dezero.Config.train:
+        xp = cuda.get_array_module(x)
+        mask = xp.random.rand(*x.shape) > dropout_ratio
+        scale = xp.array(1.0 - dropout_ratio).astype(x.dtype)
+        y = x*mask/scale
+        return y
+    else:
+        return x
 
 # =============================================================================
 # max / min / clip
@@ -454,14 +477,6 @@ def max(x, axis=None, keepdims=False):
 
 def min(x, axis=None, keepdims=False):
     return Min(axis, keepdims)(x)
-
-
-def accuracy(y, t):
-    y, t = as_variable(y), as_variable(t)
-    pred = y.data.argmax(axis=1).reshape(t.shape)
-    result = (pred == t.data)
-    acc = result.mean()
-    return as_variable(as_array(acc))
 
 
 class Clip(Function):

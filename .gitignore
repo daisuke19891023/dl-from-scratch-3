@@ -130,3 +130,4 @@ dmypy.json
 goldstein.png
 my_sin.png
 *.png
+*.npz
