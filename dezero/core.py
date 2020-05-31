@@ -6,6 +6,12 @@ from nptyping import Array
 from memory_profiler import profile
 import dezero
 
+try:
+    import cupy
+    array_types = (np.ndarray, cupy.ndarray)
+except ImportError:
+    array_types = (np.ndarray)
+
 
 class Config:
     enable_backprop = True
@@ -16,7 +22,7 @@ class Variable:
 
     def __init__(self, data: Union[float, Array[float, ..., ...]], name: Optional[str] = None) -> None:
         if data is not None:
-            if not isinstance(data, np.ndarray):
+            if not isinstance(data, array_types):
                 raise TypeError('{} is not supported'.format(type(data)))
         self.data = data
         self.name = name
@@ -31,8 +37,8 @@ class Variable:
     def backward(self, retain_grad=False, create_graph=False) -> None:
 
         if self.grad is None:
-            # self.grad = np.ones_like(self.data)
-            self.grad = Variable(np.ones_like(self.data))
+            xp = dezero.cuda.get_array_module(self.data)
+            self.grad = Variable(xp.ones_like(self.data))
 
         funcs = []
         seen_set = set()
@@ -110,6 +116,14 @@ class Variable:
             return 'variable(None)'
         p = str(self.data).replace('\n', '\n' + ' ' * 9)
         return 'variable({})'.format(p)
+
+    def to_cpu(self):
+        if self.data is not None:
+            self.data = dezero.cuda.as_numpy(self.data)
+
+    def to_gpu(self):
+        if self.data is not None:
+            self.data = dezero.cuda.as_cupy(self.data)
 
 
 class Function:
