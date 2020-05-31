@@ -265,9 +265,9 @@ def pow(x, c):
     return Pow(c)(x)
 
 
-def as_array(x: Union[float, Array[float, ..., ...]]) -> Array[float, ..., ...]:
+def as_array(x: Union[float, Array[float, ..., ...]], array_module=np) -> Array[float, ..., ...]:
     if np.isscalar(x):
-        return np.array(x)
+        return array_module.array(x)
     return x
 
 
