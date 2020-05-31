@@ -180,6 +180,56 @@ class Sigmoid(Function):
         return gx
 
 
+class Softmax(Function):
+    def __init__(self, axis=1):
+        self.axis = axis
+
+    def forward(self, x):
+        y = x - x.max(axis=self.axis, keepdims=True)
+        y = np.exp(y)
+        y /= y.sum(axis=self.axis, keepdims=True)
+        return y
+
+    def backward(self, gy):
+        y = self.outputs[0]()
+        gx = y * gy
+        sumdx = gx.sum(axis=self.axis, keepdims=True)
+        gx -= y * sumdx
+        return gx
+
+
+def softmax(x, axis=1):
+    return Softmax(axis)(x)
+
+
+class SoftmaxCrossEntropy(Function):
+    def forward(self, x, t):
+        N = x.shape[0]
+        log_z = utils.logsumexp(x, axis=1)
+        log_p = x - log_z
+        # ravel flatten multi dim data to one dim data
+        log_p = log_p[np.arange(N), t.ravel()]
+        y = -log_p.sum() / np.float32(N)
+        return y
+
+    def backward(self, gy):
+        x, t = self.inputs
+        N, CLS_NUM = x.shape
+
+        gy *= 1/N
+        y = softmax(x)
+
+        # convert to one-hot
+        # eye => create Identity matrix
+        t_one_hot = np.eye(CLS_NUM, dtype=t.dtype)[t.data]
+        y = (y - t_one_hot) * gy
+        return y
+
+
+def softmax_cross_entropy(x, t):
+    return SoftmaxCrossEntropy()(x, t)
+
+
 class GetItem(Function):
     def __init__(self, slices):
         self.slices = slices
@@ -206,26 +256,6 @@ class GetItemGrad(Function):
 
     def backward(self, ggx):
         return get_item(ggx, self.slices)
-
-
-class Clip(Function):
-    def __init__(self, x_min, x_max):
-        self.x_min = x_min
-        self.x_max = x_max
-
-    def forward(self, x):
-        y = np.clip(x, self.x_min, self.x_max)
-        return y
-
-    def backward(self, gy):
-        x = self.inputs
-        mask = (x.data >= self.x_min) * (x.data <= self.x_max)
-        gx = gy * mask
-        return gx
-
-
-def clip(x, x_min, x_max):
-    return Clip(x_min, x_max)(x)
 
 
 def sin(x):
@@ -327,3 +357,62 @@ def linear(x, W, b=None):
 
 def get_item(x, slices):
     return GetItem(slices)(x)
+
+# =============================================================================
+# max / min / clip
+# =============================================================================
+
+
+class Max(Function):
+    def __init__(self, axis=None, keepdims=False):
+        self.axis = axis
+        self.keepdims = keepdims
+
+    def forward(self, x):
+        y = x.max(axis=self.axis, keepdims=self.keepdims)
+        return y
+
+    def backward(self, gy):
+        x = self.inputs[0]
+        y = self.outputs[0]()  # weakref
+
+        shape = utils.max_backward_shape(x, self.axis)
+        gy = reshape(gy, shape)
+        y = reshape(y, shape)
+        cond = (x.data == y.data)
+        gy = broadcast_to(gy, cond.shape)
+        return gy * cond
+
+
+class Min(Max):
+    def forward(self, x):
+        y = x.min(axis=self.axis, keepdims=self.keepdims)
+        return y
+
+
+def max(x, axis=None, keepdims=False):
+    return Max(axis, keepdims)(x)
+
+
+def min(x, axis=None, keepdims=False):
+    return Min(axis, keepdims)(x)
+
+
+class Clip(Function):
+    def __init__(self, x_min, x_max):
+        self.x_min = x_min
+        self.x_max = x_max
+
+    def forward(self, x):
+        y = np.clip(x, self.x_min, self.x_max)
+        return y
+
+    def backward(self, gy):
+        x = self.inputs
+        mask = (x.data >= self.x_min) * (x.data <= self.x_max)
+        gx = gy * mask
+        return gx
+
+
+def clip(x, x_min, x_max):
+    return Clip(x_min, x_max)(x)

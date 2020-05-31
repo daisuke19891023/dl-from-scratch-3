@@ -11,6 +11,9 @@ if '__file__' in globals():
     from dezero.models import MLP
 
 
+setup_variable()
+
+
 def softmaxld(x):
     x = as_variable(x)
     y = F.exp(x)
